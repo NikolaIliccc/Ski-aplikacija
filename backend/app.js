@@ -12,7 +12,8 @@ const availabilityRoutes = require("./routes/availabilityRoutes");
 const unavailabilityRoutes = require("./routes/unavailabilityRoutes");
 const availableInstructorRoutes = require("./routes/availableInstructorRoutes");
 const changeRequestRoutes = require("./routes/changeRequestRoutes");
-
+const adminRoutes = require("./routes/adminRoutes");
+const aiRoutes = require("./routes/aiRoutes");
 const app = express();
 
 app.use(cors());
@@ -27,6 +28,8 @@ app.use("/api/availability", availabilityRoutes);
 app.use("/api/unavailability", unavailabilityRoutes);
 app.use("/api/available-instructors", availableInstructorRoutes);
 app.use("/api/change-requests", changeRequestRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/ai", aiRoutes);
 
 app.get("/", (req, res) => {
   res.send("API radi");

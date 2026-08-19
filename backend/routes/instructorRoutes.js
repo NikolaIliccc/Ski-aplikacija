@@ -48,15 +48,15 @@ router.post(
 
       const newInstructor = await pool.query(
         `INSERT INTO instructors
-        (
-          user_id,
-          ski_license,
-          snowboard_license,
-          experience_level,
-          image_url
-        )
-        VALUES ($1, $2, $3, $4)
-        RETURNING *`,
+  (
+    user_id,
+    ski_license,
+    snowboard_license,
+    experience_level,
+    image_url
+  )
+  VALUES ($1, $2, $3, $4, $5)
+  RETURNING *`,
         [
           user_id,
           ski_license,

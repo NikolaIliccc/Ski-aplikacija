@@ -1,0 +1,85 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@import "react-big-calendar/lib/css/react-big-calendar.css";
+
+.rbc-calendar {
+  background: white;
+  border-radius: 24px;
+  padding: 16px;
+}
+
+.rbc-toolbar button {
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-weight: 600;
+}
+
+.rbc-event {
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+
+.rbc-today {
+  background-color: #eff6ff;
+}
+
+.rbc-calendar {
+  background: white;
+  border-radius: 24px;
+  padding: 16px;
+  color: #0f172a;
+}
+
+.rbc-toolbar {
+  margin-bottom: 20px;
+}
+
+.rbc-toolbar button {
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-weight: 600;
+  border: 1px solid #dbeafe;
+  background: white;
+  color: #0f172a;
+}
+
+.rbc-toolbar button:hover {
+  background: #eff6ff;
+}
+
+.rbc-event {
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 13px;
+  background-color: #2563eb;
+}
+
+.rbc-today {
+  background-color: #eff6ff;
+}
