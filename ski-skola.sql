@@ -6,7 +6,7 @@
 
 -- Dumped from database version 18.3
 -- Dumped by pg_dump version 18.3
-
+--Admin gmail i sifra: admin@gmail.com admin123, menadzer: booker@gmail.com 123456, instruktor: nikola@gmail.com nikola123
 -- Started on 2026-08-26 11:25:39
 
 SET statement_timeout = 0;
