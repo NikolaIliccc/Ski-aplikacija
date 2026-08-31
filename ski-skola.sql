@@ -66,12 +66,56 @@ CREATE SEQUENCE public.ai_procene_id_seq
 ALTER SEQUENCE public.ai_procene_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5060 (class 0 OID 0)
+-- TOC entry 5075 (class 0 OID 0)
 -- Dependencies: 233
 -- Name: ai_procene_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
 ALTER SEQUENCE public.ai_procene_id_seq OWNED BY public.ai_procene.id;
+
+
+--
+-- TOC entry 236 (class 1259 OID 24792)
+-- Name: audit_logs; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.audit_logs (
+    id integer NOT NULL,
+    user_id integer,
+    action character varying(100) NOT NULL,
+    entity_type character varying(100),
+    entity_id integer,
+    details text,
+    ip_address character varying(100),
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+);
+
+
+ALTER TABLE public.audit_logs OWNER TO postgres;
+
+--
+-- TOC entry 235 (class 1259 OID 24791)
+-- Name: audit_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.audit_logs_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.audit_logs_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 5076 (class 0 OID 0)
+-- Dependencies: 235
+-- Name: audit_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.audit_logs_id_seq OWNED BY public.audit_logs.id;
 
 
 --
@@ -109,7 +153,7 @@ CREATE SEQUENCE public.instructor_unavailability_id_seq
 ALTER SEQUENCE public.instructor_unavailability_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5061 (class 0 OID 0)
+-- TOC entry 5077 (class 0 OID 0)
 -- Dependencies: 229
 -- Name: instructor_unavailability_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -151,7 +195,7 @@ CREATE SEQUENCE public.instructors_id_seq
 ALTER SEQUENCE public.instructors_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5062 (class 0 OID 0)
+-- TOC entry 5078 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: instructors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -196,7 +240,7 @@ CREATE SEQUENCE public.lesson_change_requests_id_seq
 ALTER SEQUENCE public.lesson_change_requests_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5063 (class 0 OID 0)
+-- TOC entry 5079 (class 0 OID 0)
 -- Dependencies: 231
 -- Name: lesson_change_requests_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -253,7 +297,7 @@ CREATE SEQUENCE public.lesson_requests_id_seq
 ALTER SEQUENCE public.lesson_requests_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5064 (class 0 OID 0)
+-- TOC entry 5080 (class 0 OID 0)
 -- Dependencies: 227
 -- Name: lesson_requests_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -297,7 +341,7 @@ CREATE SEQUENCE public.lessons_id_seq
 ALTER SEQUENCE public.lessons_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5065 (class 0 OID 0)
+-- TOC entry 5081 (class 0 OID 0)
 -- Dependencies: 225
 -- Name: lessons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -339,7 +383,7 @@ CREATE SEQUENCE public.students_id_seq
 ALTER SEQUENCE public.students_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5066 (class 0 OID 0)
+-- TOC entry 5082 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: students_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -383,7 +427,7 @@ CREATE SEQUENCE public.users_id_seq
 ALTER SEQUENCE public.users_id_seq OWNER TO postgres;
 
 --
--- TOC entry 5067 (class 0 OID 0)
+-- TOC entry 5083 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -392,7 +436,7 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
--- TOC entry 4862 (class 2604 OID 24763)
+-- TOC entry 4867 (class 2604 OID 24763)
 -- Name: ai_procene id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -400,7 +444,15 @@ ALTER TABLE ONLY public.ai_procene ALTER COLUMN id SET DEFAULT nextval('public.a
 
 
 --
--- TOC entry 4857 (class 2604 OID 16489)
+-- TOC entry 4869 (class 2604 OID 24795)
+-- Name: audit_logs id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.audit_logs ALTER COLUMN id SET DEFAULT nextval('public.audit_logs_id_seq'::regclass);
+
+
+--
+-- TOC entry 4862 (class 2604 OID 16489)
 -- Name: instructor_unavailability id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -408,7 +460,7 @@ ALTER TABLE ONLY public.instructor_unavailability ALTER COLUMN id SET DEFAULT ne
 
 
 --
--- TOC entry 4847 (class 2604 OID 16407)
+-- TOC entry 4852 (class 2604 OID 16407)
 -- Name: instructors id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -416,7 +468,7 @@ ALTER TABLE ONLY public.instructors ALTER COLUMN id SET DEFAULT nextval('public.
 
 
 --
--- TOC entry 4859 (class 2604 OID 16508)
+-- TOC entry 4864 (class 2604 OID 16508)
 -- Name: lesson_change_requests id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -424,7 +476,7 @@ ALTER TABLE ONLY public.lesson_change_requests ALTER COLUMN id SET DEFAULT nextv
 
 
 --
--- TOC entry 4851 (class 2604 OID 16452)
+-- TOC entry 4856 (class 2604 OID 16452)
 -- Name: lesson_requests id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -432,7 +484,7 @@ ALTER TABLE ONLY public.lesson_requests ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
--- TOC entry 4850 (class 2604 OID 16434)
+-- TOC entry 4855 (class 2604 OID 16434)
 -- Name: lessons id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -440,7 +492,7 @@ ALTER TABLE ONLY public.lessons ALTER COLUMN id SET DEFAULT nextval('public.less
 
 
 --
--- TOC entry 4849 (class 2604 OID 16421)
+-- TOC entry 4854 (class 2604 OID 16421)
 -- Name: students id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -448,7 +500,7 @@ ALTER TABLE ONLY public.students ALTER COLUMN id SET DEFAULT nextval('public.stu
 
 
 --
--- TOC entry 4844 (class 2604 OID 16396)
+-- TOC entry 4849 (class 2604 OID 16396)
 -- Name: users id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -456,7 +508,7 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
--- TOC entry 5054 (class 0 OID 24760)
+-- TOC entry 5067 (class 0 OID 24760)
 -- Dependencies: 234
 -- Data for Name: ai_procene; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -470,11 +522,38 @@ COPY public.ai_procene (id, korisnik_id, zahtev_rezervacije_id, disciplina, isku
 6	24	\N	ski	Imam jednu sezonu iskustva	t	t	f	Siguran sam na plavim stazama, ali nisam potpuno siguran na crvenim	intermediate	group	Imaš jednu sezonu i samostalno kontrolišeš brzinu i zaustavljanje te si siguran na plavim stazama, što odgovara intermediate nivou. Pošto imaš 11 godina i samostalno koristiš žičaru, ispunjavaš uslove za grupnu nastavu, zato preporučujem group čas.	2026-08-19 14:33:52.36668
 7	24	\N	ski	Skijao/vozio sam nekoliko dana	t	t	f	Siguran sam na plavim i crvenim stazama	intermediate	individual	Imate stabilnu kontrolu brzine i zaustavljanja i osećate se sigurno na plavim i crvenim stazama, što odgovara intermediate nivou; nedostatak paralelnih zavoja ne menja procenu. Pošto imate preko 12 godina, preporučujem individualni čas radi fokusiranog usavršavanja tehnike.	2026-08-24 23:21:12.386499
 8	24	\N	ski	Skijao/vozio sam nekoliko dana	t	f	f	Siguran sam samo na lakšim i plavim stazama	beginner	individual	Korisnik je početnik jer još ne kontroliše bezbedno brzinu i zaustavljanje. Iako samostalno koristi žičaru, zbog nedostatka kontrole brzine i zaustavljanja preporučujem individualni čas radi sigurnijeg i bržeg napretka.	2026-08-24 23:54:41.579807
+9	24	43	ski	Skijao/vozio sam nekoliko dana	t	t	t	Siguran sam na plavim stazama, ali nisam potpuno siguran na crvenim	intermediate	individual	Imate stabilnu osnovu — kontrolišete brzinu, zaustavljate se, koristite žičaru i izvodite paralelne zavoje, što odgovara intermediate nivou. Pošto imate više od 12 godina, preporučujem individualni čas radi fokusiranog napretka i veće sigurnosti na crvenim stazama.	2026-08-31 18:45:06.056451
+10	24	44	ski	Skijao/vozio sam nekoliko dana	t	t	f	Siguran sam samo na lakšim i plavim stazama	intermediate	individual	Ima osnovnu kontrolu brzine i zaustavljanja i samostalno koristi žičaru, ali još ne izvodi paralelne zavoje i skija pretežno na lakšim (plavim) stazama. Pošto je stariji od 12 godina, preporučujemo individualni čas za fokusiran rad na tehnici i brži napredak.	2026-08-31 18:47:44.129724
+11	24	45	ski	Skijao/vozio sam nekoliko dana	t	t	t	Siguran sam na plavim i crvenim stazama	intermediate	individual	Korisnik je intermedijar: samostalan na stazi, kontroliše brzinu i zaustavljanje, izvodi paralelne zavoje i siguran je na plavim i crvenim stazama. Pošto ima više od 12 godina, preporučujem individualni čas radi personalizovanog usavršavanja tehnike.	2026-08-31 18:52:18.895717
+12	24	46	ski	Skijao/vozio sam nekoliko dana	t	t	f	Siguran sam samo na lakšim i plavim stazama	intermediate	individual	Imate nekoliko dana iskustva, samostalno koristite žičaru i bezbedno kontrolišete brzinu i zaustavljanje, što odgovara intermediate nivou. Pošto imate više od 12 godina, preporučujem individualni čas radi fokusiranog rada na tehnici i uvođenja paralelnih zavoja.	2026-08-31 19:41:03.093634
 \.
 
 
 --
--- TOC entry 5050 (class 0 OID 16486)
+-- TOC entry 5069 (class 0 OID 24792)
+-- Dependencies: 236
+-- Data for Name: audit_logs; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.audit_logs (id, user_id, action, entity_type, entity_id, details, ip_address, created_at) FROM stdin;
+1	24	LOGIN	user	24	Uspešna prijava u sistem.	::1	2026-08-31 19:36:48.110842
+2	24	UPDATE_PROFILE	user	24	Korisnik je izmenio podatke svog profila.	::1	2026-08-31 19:36:57.425216
+3	24	CHANGE_PASSWORD	user	24	Korisnik je promenio lozinku.	::1	2026-08-31 19:37:11.633616
+4	25	LOGIN	user	25	Uspešna prijava u sistem.	::1	2026-08-31 19:37:26.709539
+5	4	LOGIN	user	4	Uspešna prijava u sistem.	::1	2026-08-31 19:39:57.008873
+6	4	APPROVE_LESSON_REQUEST	lesson_request	45	Zahtev je odobren i dodeljen instruktoru ID 17.	::1	2026-08-31 19:40:04.763263
+7	24	LOGIN	user	24	Uspešna prijava u sistem.	::1	2026-08-31 19:40:28.452226
+8	24	CREATE_LESSON_REQUEST	lesson_request	46	Poslat zahtev za ski čas. Tip nastave: individual.	::1	2026-08-31 19:41:16.310921
+9	25	LOGIN	user	25	Uspešna prijava u sistem.	::1	2026-08-31 19:41:36.612912
+10	25	LOGIN	user	25	Uspešna prijava u sistem.	::1	2026-08-31 20:01:23.379516
+11	25	LOGIN	user	25	Uspešna prijava u sistem.	::1	2026-08-31 20:01:52.021039
+12	25	LOGIN	user	25	Uspešna prijava u sistem.	::1	2026-08-31 20:06:52.193091
+13	4	LOGIN	user	4	Uspešna prijava u sistem.	::1	2026-08-31 20:08:37.125839
+\.
+
+
+--
+-- TOC entry 5063 (class 0 OID 16486)
 -- Dependencies: 230
 -- Data for Name: instructor_unavailability; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -484,7 +563,7 @@ COPY public.instructor_unavailability (id, instructor_id, unavailable_date, star
 
 
 --
--- TOC entry 5042 (class 0 OID 16404)
+-- TOC entry 5055 (class 0 OID 16404)
 -- Dependencies: 222
 -- Data for Name: instructors; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -509,7 +588,7 @@ COPY public.instructors (id, user_id, snowboard_license, experience_level, ski_l
 
 
 --
--- TOC entry 5052 (class 0 OID 16505)
+-- TOC entry 5065 (class 0 OID 16505)
 -- Dependencies: 232
 -- Data for Name: lesson_change_requests; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -524,7 +603,7 @@ COPY public.lesson_change_requests (id, lesson_id, user_id, requested_date, requ
 
 
 --
--- TOC entry 5048 (class 0 OID 16449)
+-- TOC entry 5061 (class 0 OID 16449)
 -- Dependencies: 228
 -- Data for Name: lesson_requests; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -572,11 +651,15 @@ COPY public.lesson_requests (id, lesson_type, preferred_date, preferred_time, du
 40	ski	2026-02-03	12:00:00	60	Zelim dobrog instruktora	approved	2026-08-17 13:24:29.354788	2	individual	\N	Milica	Stasic	23	064124152	srednji	\N	\N	\N	f	24
 41	ski	2026-02-02	10:00:00	60	\N	rejected	2026-08-19 14:37:16.300295	2	group	2h	Nikola	Ilic	11	063211241	srednji	Dragan	063211241	\N	f	24
 42	ski	2026-04-02	11:00:00	60	Zelim da naucim paralelno zaokrete	approved	2026-08-24 23:23:59.146021	1	individual	\N	Nikola	Ilic	23	0641342052	srednji	\N	\N	\N	f	24
+43	ski	2026-03-20	11:00:00	60	\N	pending	2026-08-31 18:45:34.04181	1	individual	\N	Stefan	Markovic	21	06421412	srednji	\N	\N	\N	f	24
+44	ski	2026-02-03	11:00:00	60	blablalbalbla	pending	2026-08-31 18:48:24.663442	2	individual	\N	dsffasf	sfsafdasdf	21	061213124	srednji	\N	\N	\N	f	24
+45	ski	2026-04-20	09:00:00	60	\N	approved	2026-08-31 18:52:35.304072	1	individual	\N	Nikola	Stefanovic	22	0641241	srednji	\N	\N	\N	f	24
+46	ski	2026-03-04	12:00:00	60	\N	pending	2026-08-31 19:41:16.310921	1	individual	\N	stefan	rawerasd	21	06213124	srednji	\N	\N	\N	f	24
 \.
 
 
 --
--- TOC entry 5046 (class 0 OID 16431)
+-- TOC entry 5059 (class 0 OID 16431)
 -- Dependencies: 226
 -- Data for Name: lessons; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -590,11 +673,12 @@ COPY public.lessons (id, instructor_id, lesson_type, lesson_date, start_time, en
 39	1	ski	2026-02-02	00:00:00	02:00:00	scheduled	38
 40	3	ski	2026-02-01	11:00:00	12:00:00	scheduled	39
 42	1	ski	2026-04-02	10:00:00	11:00:00	scheduled	42
+43	17	ski	2026-04-20	09:00:00	10:00:00	scheduled	45
 \.
 
 
 --
--- TOC entry 5044 (class 0 OID 16418)
+-- TOC entry 5057 (class 0 OID 16418)
 -- Dependencies: 224
 -- Data for Name: students; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -606,7 +690,7 @@ COPY public.students (id, parent_id, first_name, last_name, age, skill_level) FR
 
 
 --
--- TOC entry 5040 (class 0 OID 16393)
+-- TOC entry 5053 (class 0 OID 16393)
 -- Dependencies: 220
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -630,7 +714,6 @@ COPY public.users (id, name, email, password, role, failed_login_attempts, locke
 23	marko	marko@gmails.com	$2b$10$dO038A.NfNb2wlmA1JUB9.ddnAbUqKwKarMGzKmfbJiqlPMrawc56	client	0	\N	t
 5	Marta Vojvodic	marta@gmail.com	$2b$10$5S4egQIc3PbnkMLfdBNHveGsh67vjI3naBOBAItY8oboKmYiVEWjG	instructor	0	\N	t
 3	Test Roditelj	roditelj@test.com	$2b$10$DgXGatbRGrfh9YgHJfX1E.LQM08KrayV9NoP8RfLQkE8b0JEcTe2m	parent	0	\N	f
-24	test	testuser@gmail.com	$2b$10$fsxFWmCEZ2DpGJ8dBIlPFOPe61nruML3arVbPLv2f9VUVaJOIIBJy	client	0	\N	t
 31	Alen Aziri	alen@gmail.com	$2b$10$zX.vDe1W..Uzpx0wGrQV2OEtmGu9Cw.k0U50JPOB9vac23r6XalI6	instructor	0	\N	t
 32	Andrija Arsovic	andrijars@gmail.com	$2b$10$qv.VuuaNkyAsO/hrwjfPHu5ch6y/DYGEWeACrXcndR.8qRxVA0InG	instructor	0	\N	t
 29	Andjela Lazovic	andjelaski@gmail.com	$2b$10$woK3mZ/zWhWXXKoEK1OFce.whK7stNfeJjWcMyxx8Q75XY04hsBGa	instructor	0	\N	t
@@ -644,23 +727,33 @@ COPY public.users (id, name, email, password, role, failed_login_attempts, locke
 30	Miroslava Bisercic	miroslav@gmail.com	$2b$10$VNx1vH71Cr4L83DgWXCBKOCsv7bijfFbqfz/3QebOEzBXB.GJoNJK	instructor	0	\N	t
 39	Veljko Popovic	veljko@gmail.com	$2b$10$Uh0Tb.6XUkv33xvrofk5ee9CykJvTdqQqAtqC7rrio88m6X8L/74a	instructor	0	\N	t
 41	Milenko Purkovic	milenko@gmail.com	$2b$10$MDaWGVAQxeH/qCEX/MpJWOqLW4Wm9MbtVTgRvxYesjYd8bw1B/gKm	instructor	0	\N	t
-4	Booker	booker@gmail.com	$2b$10$IsDTwfDtbcrFBe1WyFSatu84QJZmomXukMMc8qUkfxjGFU.8jQGtq	booker	0	\N	t
-2	Nikola Ilic	nikola@gmail.com	$2b$10$zVhKiLZV59kDlnTLcE1dmO22khDu2g/0c1XLL3x3HJ0E5BcXUsEAi	instructor	0	\N	t
 25	Administrator	admin@gmail.com	$2b$10$H5Tjt1JkPyIBDL/rprnkjeyA/f.DksBeIEoPgWUD7YzwHCM/y1PPS	admin	0	\N	t
+2	Nikola Ilic	nikola@gmail.com	$2b$10$zVhKiLZV59kDlnTLcE1dmO22khDu2g/0c1XLL3x3HJ0E5BcXUsEAi	instructor	0	\N	t
+24	Nikola12	nikola2@gmail.com	$2b$10$TcsstQR0huZzk87ndOacouKSVMzt0trAwcmMUAbVfXl9cU9GD7F.S	client	0	\N	t
+4	Booker	booker@gmail.com	$2b$10$IsDTwfDtbcrFBe1WyFSatu84QJZmomXukMMc8qUkfxjGFU.8jQGtq	booker	0	\N	t
 \.
 
 
 --
--- TOC entry 5068 (class 0 OID 0)
+-- TOC entry 5084 (class 0 OID 0)
 -- Dependencies: 233
 -- Name: ai_procene_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.ai_procene_id_seq', 8, true);
+SELECT pg_catalog.setval('public.ai_procene_id_seq', 12, true);
 
 
 --
--- TOC entry 5069 (class 0 OID 0)
+-- TOC entry 5085 (class 0 OID 0)
+-- Dependencies: 235
+-- Name: audit_logs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.audit_logs_id_seq', 13, true);
+
+
+--
+-- TOC entry 5086 (class 0 OID 0)
 -- Dependencies: 229
 -- Name: instructor_unavailability_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -669,7 +762,7 @@ SELECT pg_catalog.setval('public.instructor_unavailability_id_seq', 1, true);
 
 
 --
--- TOC entry 5070 (class 0 OID 0)
+-- TOC entry 5087 (class 0 OID 0)
 -- Dependencies: 221
 -- Name: instructors_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -678,7 +771,7 @@ SELECT pg_catalog.setval('public.instructors_id_seq', 20, true);
 
 
 --
--- TOC entry 5071 (class 0 OID 0)
+-- TOC entry 5088 (class 0 OID 0)
 -- Dependencies: 231
 -- Name: lesson_change_requests_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -687,25 +780,25 @@ SELECT pg_catalog.setval('public.lesson_change_requests_id_seq', 8, true);
 
 
 --
--- TOC entry 5072 (class 0 OID 0)
+-- TOC entry 5089 (class 0 OID 0)
 -- Dependencies: 227
 -- Name: lesson_requests_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.lesson_requests_id_seq', 42, true);
+SELECT pg_catalog.setval('public.lesson_requests_id_seq', 46, true);
 
 
 --
--- TOC entry 5073 (class 0 OID 0)
+-- TOC entry 5090 (class 0 OID 0)
 -- Dependencies: 225
 -- Name: lessons_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.lessons_id_seq', 42, true);
+SELECT pg_catalog.setval('public.lessons_id_seq', 43, true);
 
 
 --
--- TOC entry 5074 (class 0 OID 0)
+-- TOC entry 5091 (class 0 OID 0)
 -- Dependencies: 223
 -- Name: students_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -714,7 +807,7 @@ SELECT pg_catalog.setval('public.students_id_seq', 2, true);
 
 
 --
--- TOC entry 5075 (class 0 OID 0)
+-- TOC entry 5092 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -723,7 +816,7 @@ SELECT pg_catalog.setval('public.users_id_seq', 42, true);
 
 
 --
--- TOC entry 4881 (class 2606 OID 24779)
+-- TOC entry 4888 (class 2606 OID 24779)
 -- Name: ai_procene ai_procene_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -732,7 +825,16 @@ ALTER TABLE ONLY public.ai_procene
 
 
 --
--- TOC entry 4877 (class 2606 OID 16498)
+-- TOC entry 4890 (class 2606 OID 24802)
+-- Name: audit_logs audit_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.audit_logs
+    ADD CONSTRAINT audit_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- TOC entry 4884 (class 2606 OID 16498)
 -- Name: instructor_unavailability instructor_unavailability_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -741,7 +843,7 @@ ALTER TABLE ONLY public.instructor_unavailability
 
 
 --
--- TOC entry 4869 (class 2606 OID 16410)
+-- TOC entry 4876 (class 2606 OID 16410)
 -- Name: instructors instructors_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -750,7 +852,7 @@ ALTER TABLE ONLY public.instructors
 
 
 --
--- TOC entry 4879 (class 2606 OID 16515)
+-- TOC entry 4886 (class 2606 OID 16515)
 -- Name: lesson_change_requests lesson_change_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -759,7 +861,7 @@ ALTER TABLE ONLY public.lesson_change_requests
 
 
 --
--- TOC entry 4875 (class 2606 OID 16459)
+-- TOC entry 4882 (class 2606 OID 16459)
 -- Name: lesson_requests lesson_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -768,7 +870,7 @@ ALTER TABLE ONLY public.lesson_requests
 
 
 --
--- TOC entry 4873 (class 2606 OID 16437)
+-- TOC entry 4880 (class 2606 OID 16437)
 -- Name: lessons lessons_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -777,7 +879,7 @@ ALTER TABLE ONLY public.lessons
 
 
 --
--- TOC entry 4871 (class 2606 OID 16424)
+-- TOC entry 4878 (class 2606 OID 16424)
 -- Name: students students_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -786,7 +888,7 @@ ALTER TABLE ONLY public.students
 
 
 --
--- TOC entry 4865 (class 2606 OID 16401)
+-- TOC entry 4872 (class 2606 OID 16401)
 -- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -795,7 +897,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 4867 (class 2606 OID 16399)
+-- TOC entry 4874 (class 2606 OID 16399)
 -- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -804,7 +906,31 @@ ALTER TABLE ONLY public.users
 
 
 --
--- TOC entry 4890 (class 2606 OID 24780)
+-- TOC entry 4891 (class 1259 OID 24809)
+-- Name: idx_audit_logs_action; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_audit_logs_action ON public.audit_logs USING btree (action);
+
+
+--
+-- TOC entry 4892 (class 1259 OID 24810)
+-- Name: idx_audit_logs_created_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_audit_logs_created_at ON public.audit_logs USING btree (created_at);
+
+
+--
+-- TOC entry 4893 (class 1259 OID 24808)
+-- Name: idx_audit_logs_user_id; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_audit_logs_user_id ON public.audit_logs USING btree (user_id);
+
+
+--
+-- TOC entry 4902 (class 2606 OID 24780)
 -- Name: ai_procene ai_procene_korisnik_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -813,7 +939,7 @@ ALTER TABLE ONLY public.ai_procene
 
 
 --
--- TOC entry 4891 (class 2606 OID 24785)
+-- TOC entry 4903 (class 2606 OID 24785)
 -- Name: ai_procene ai_procene_zahtev_rezervacije_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -822,7 +948,16 @@ ALTER TABLE ONLY public.ai_procene
 
 
 --
--- TOC entry 4887 (class 2606 OID 16499)
+-- TOC entry 4904 (class 2606 OID 24803)
+-- Name: audit_logs audit_logs_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.audit_logs
+    ADD CONSTRAINT audit_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE SET NULL;
+
+
+--
+-- TOC entry 4899 (class 2606 OID 16499)
 -- Name: instructor_unavailability instructor_unavailability_instructor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -831,7 +966,7 @@ ALTER TABLE ONLY public.instructor_unavailability
 
 
 --
--- TOC entry 4882 (class 2606 OID 16411)
+-- TOC entry 4894 (class 2606 OID 16411)
 -- Name: instructors instructors_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -840,7 +975,7 @@ ALTER TABLE ONLY public.instructors
 
 
 --
--- TOC entry 4888 (class 2606 OID 16516)
+-- TOC entry 4900 (class 2606 OID 16516)
 -- Name: lesson_change_requests lesson_change_requests_lesson_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -849,7 +984,7 @@ ALTER TABLE ONLY public.lesson_change_requests
 
 
 --
--- TOC entry 4889 (class 2606 OID 16521)
+-- TOC entry 4901 (class 2606 OID 16521)
 -- Name: lesson_change_requests lesson_change_requests_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -858,7 +993,7 @@ ALTER TABLE ONLY public.lesson_change_requests
 
 
 --
--- TOC entry 4886 (class 2606 OID 16480)
+-- TOC entry 4898 (class 2606 OID 16480)
 -- Name: lesson_requests lesson_requests_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -867,7 +1002,7 @@ ALTER TABLE ONLY public.lesson_requests
 
 
 --
--- TOC entry 4884 (class 2606 OID 16443)
+-- TOC entry 4896 (class 2606 OID 16443)
 -- Name: lessons lessons_instructor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -876,7 +1011,7 @@ ALTER TABLE ONLY public.lessons
 
 
 --
--- TOC entry 4885 (class 2606 OID 16472)
+-- TOC entry 4897 (class 2606 OID 16472)
 -- Name: lessons lessons_request_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -885,7 +1020,7 @@ ALTER TABLE ONLY public.lessons
 
 
 --
--- TOC entry 4883 (class 2606 OID 16425)
+-- TOC entry 4895 (class 2606 OID 16425)
 -- Name: students students_parent_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -893,11 +1028,13 @@ ALTER TABLE ONLY public.students
     ADD CONSTRAINT students_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES public.users(id);
 
 
--- Completed on 2026-08-26 11:25:40
+-- Completed on 2026-08-31 20:19:24
 
 --
 -- PostgreSQL database dump complete
 --
 
-\unrestrict HgvKJ6hMt1hHxfdyRTTVnXEKAMcHbx7JcbTc0D8pJSQNwSWeG8WXk2WZqgZrG6k
+\unrestrict kIeNNuWMGDDNkdCl4qdCWeHuz7kfMUoG1524J4w14wJvH6JZVlxe4GWdODqvdSD
+
+
 
