@@ -12,6 +12,21 @@ export default function AdministratorPage() {
   const [users, setUsers] = useState([]);
   const [instructors, setInstructors] = useState([]);
 
+  const [auditLogs, setAuditLogs] =
+    useState([]);
+
+  const [loadingAuditLogs, setLoadingAuditLogs] =
+    useState(false);
+
+  const [auditSearch, setAuditSearch] =
+    useState("");
+
+  const [auditRoleFilter, setAuditRoleFilter] =
+    useState("all");
+
+  const [auditActionFilter, setAuditActionFilter] =
+    useState("all");
+
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [loadingInstructors, setLoadingInstructors] = useState(false);
 
@@ -789,6 +804,70 @@ export default function AdministratorPage() {
     }
   };
 
+  const getAuditLogs = async () => {
+    try {
+      setLoadingAuditLogs(true);
+
+      const token =
+        getToken();
+
+      const params = {};
+
+      if (
+        auditSearch.trim()
+      ) {
+        params.search =
+          auditSearch.trim();
+      }
+
+      if (
+        auditRoleFilter !== "all"
+      ) {
+        params.role =
+          auditRoleFilter;
+      }
+
+      if (
+        auditActionFilter !== "all"
+      ) {
+        params.action =
+          auditActionFilter;
+      }
+
+
+      const res =
+        await axios.get(
+          `${API}/api/audit-logs`,
+          {
+            headers: {
+              token
+            },
+
+            params
+          }
+        );
+
+
+      setAuditLogs(
+        res.data
+      );
+
+    } catch (err) {
+      console.log(
+        "AUDIT LOG ERROR:",
+        err.response?.data || err
+      );
+
+      alert(
+        err.response?.data?.message ||
+        "Greška pri učitavanju aktivnosti."
+      );
+
+    } finally {
+      setLoadingAuditLogs(false);
+    }
+  };
+
   // =====================================================
   // LOGOUT
   // =====================================================
@@ -822,6 +901,56 @@ export default function AdministratorPage() {
     }
 
     return role;
+  };
+
+  // =====================================================
+  // AUDIT ACTION LABEL
+  // =====================================================
+
+  const auditActionLabel = (action) => {
+    if (action === "REGISTER")
+      return "Registracija";
+
+    if (action === "LOGIN")
+      return "Prijava";
+
+    if (action === "GOOGLE_LOGIN")
+      return "Google prijava";
+
+    if (action === "UPDATE_PROFILE")
+      return "Izmena profila";
+
+    if (action === "CHANGE_PASSWORD")
+      return "Promena lozinke";
+
+    if (action === "CREATE_LESSON_REQUEST")
+      return "Novi zahtev za čas";
+
+    if (action === "APPROVE_LESSON_REQUEST")
+      return "Odobren zahtev";
+
+    if (action === "REJECT_LESSON_REQUEST")
+      return "Odbijen zahtev";
+
+    if (action === "CREATE_CHANGE_REQUEST")
+      return "Zahtev za promenu termina";
+
+    if (action === "APPROVE_CHANGE_REQUEST")
+      return "Odobrena promena termina";
+
+    if (action === "REJECT_CHANGE_REQUEST")
+      return "Odbijena promena termina";
+
+    return action;
+  };
+
+
+  const formatAuditDate = (date) => {
+    if (!date) {
+      return "/";
+    }
+
+    return new Date(date).toLocaleString("sr-RS");
   };
 
   // =====================================================
@@ -1078,20 +1207,67 @@ export default function AdministratorPage() {
                 setActiveSection("overview")
               }
               className={`sidebar-button ${activeSection === "overview"
-                  ? "bg-white/20"
-                  : "hover:bg-white/10"
+                ? "bg-white/20"
+                : "hover:bg-white/10"
                 }`}
             >
               Pregled sistema
             </button>
+            <div className="mt-3 mb-1 px-4">
+              <p className="text-xs uppercase tracking-wider text-blue-200 font-bold">
+                Menadžerske funkcije
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                window.location.href = "/admin?section=requests";
+              }}
+              className="sidebar-button hover:bg-white/10"
+            >
+              Novi zahtevi
+            </button>
+
+            <button
+              onClick={() => {
+                window.location.href = "/admin?section=lessons";
+              }}
+              className="sidebar-button hover:bg-white/10"
+            >
+              Zakazani časovi
+            </button>
+
+            <button
+              onClick={() => {
+                window.location.href = "/admin?section=changeRequests";
+              }}
+              className="sidebar-button hover:bg-white/10"
+            >
+              Promene termina
+            </button>
+
+            <button
+              onClick={() => {
+                window.location.href = "/admin?section=calendar";
+              }}
+              className="sidebar-button hover:bg-white/10"
+            >
+              Kalendar
+            </button>
+
+            <div className="mt-5 mb-1 px-4">
+              <p className="text-xs uppercase tracking-wider text-blue-200 font-bold">
+                Administracija
+              </p>
+            </div>
 
             <button
               onClick={() =>
                 setActiveSection("users")
               }
               className={`sidebar-button ${activeSection === "users"
-                  ? "bg-white/20"
-                  : "hover:bg-white/10"
+                ? "bg-white/20"
+                : "hover:bg-white/10"
                 }`}
             >
               Korisnici
@@ -1102,11 +1278,24 @@ export default function AdministratorPage() {
                 setActiveSection("instructors")
               }
               className={`sidebar-button ${activeSection === "instructors"
-                  ? "bg-white/20"
-                  : "hover:bg-white/10"
+                ? "bg-white/20"
+                : "hover:bg-white/10"
                 }`}
             >
               Instruktori
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveSection("audit");
+                getAuditLogs();
+              }}
+              className={`sidebar-button ${activeSection === "audit"
+                ? "bg-white/20"
+                : "hover:bg-white/10"
+                }`}
+            >
+              Aktivnosti korisnika
             </button>
 
           </div>
@@ -1261,6 +1450,30 @@ export default function AdministratorPage() {
                     className="mt-5 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-2xl font-bold"
                   >
                     Otvori instruktore
+                  </button>
+
+                </div>
+
+                <div className="bg-white rounded-[2rem] shadow p-6">
+
+                  <h3 className="text-2xl font-bold mb-3">
+                    Menadžerske funkcije
+                  </h3>
+
+                  <p className="text-slate-500 leading-7">
+                    Administrator ima pristup svim funkcionalnostima
+                    menadžera, uključujući obradu novih zahteva,
+                    pregled i izmenu zakazanih časova, obradu zahteva
+                    za promenu termina i pregled kalendara časova.
+                  </p>
+
+                  <button
+                    onClick={() => {
+                      window.location.href = "/admin?section=requests";
+                    }}
+                    className="mt-5 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-2xl font-bold"
+                  >
+                    Otvori menadžerske funkcije
                   </button>
 
                 </div>
@@ -1585,8 +1798,8 @@ export default function AdministratorPage() {
 
                                   <span
                                     className={`status-badge ${user.is_active === false
-                                        ? "bg-red-100 text-red-700"
-                                        : "bg-green-100 text-green-700"
+                                      ? "bg-red-100 text-red-700"
+                                      : "bg-green-100 text-green-700"
                                       }`}
                                   >
                                     {user.is_active === false
@@ -1904,8 +2117,8 @@ export default function AdministratorPage() {
                         <div
                           key={instructor.id}
                           className={`border rounded-3xl p-5 ${instructor.is_active === false
-                              ? "border-red-200 bg-red-50/30"
-                              : "border-slate-200 bg-white"
+                            ? "border-red-200 bg-red-50/30"
+                            : "border-slate-200 bg-white"
                             }`}
                         >
 
@@ -2082,9 +2295,9 @@ export default function AdministratorPage() {
 
                                 <span
                                   className={`status-badge ${instructor.is_active ===
-                                      false
-                                      ? "bg-red-100 text-red-700"
-                                      : "bg-green-100 text-green-700"
+                                    false
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-green-100 text-green-700"
                                     }`}
                                 >
                                   {instructor.is_active ===
@@ -2208,7 +2421,301 @@ export default function AdministratorPage() {
 
             </section>
           )}
+          {/* ================================================= */}
+          {/* AUDIT LOG */}
+          {/* ================================================= */}
 
+          {activeSection === "audit" && (
+            <section>
+
+              <div className="bg-white rounded-[2rem] shadow p-4 sm:p-6">
+
+                <div className="mb-6">
+
+                  <h3 className="text-2xl font-bold">
+                    Aktivnosti korisnika
+                  </h3>
+
+                  <p className="text-slate-500 mt-1">
+                    Evidencija važnih aktivnosti izvršenih
+                    u informacionom sistemu.
+                  </p>
+
+                </div>
+
+
+                {/* FILTERI */}
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+
+                  <input
+                    className="form-input"
+                    placeholder="Pretraži korisnika, email ili aktivnost..."
+                    value={auditSearch}
+                    onChange={(e) =>
+                      setAuditSearch(
+                        e.target.value
+                      )
+                    }
+                  />
+
+
+                  <select
+                    className="form-input"
+                    value={auditRoleFilter}
+                    onChange={(e) =>
+                      setAuditRoleFilter(
+                        e.target.value
+                      )
+                    }
+                  >
+
+                    <option value="all">
+                      Sve uloge
+                    </option>
+
+                    <option value="client">
+                      Klijent
+                    </option>
+
+                    <option value="instructor">
+                      Instruktor
+                    </option>
+
+                    <option value="booker">
+                      Menadžer
+                    </option>
+
+                    <option value="admin">
+                      Administrator
+                    </option>
+
+                  </select>
+
+
+                  <select
+                    className="form-input"
+                    value={auditActionFilter}
+                    onChange={(e) =>
+                      setAuditActionFilter(
+                        e.target.value
+                      )
+                    }
+                  >
+
+                    <option value="all">
+                      Sve aktivnosti
+                    </option>
+
+                    <option value="REGISTER">
+                      Registracija
+                    </option>
+
+                    <option value="LOGIN">
+                      Prijava
+                    </option>
+
+                    <option value="GOOGLE_LOGIN">
+                      Google prijava
+                    </option>
+
+                    <option value="UPDATE_PROFILE">
+                      Izmena profila
+                    </option>
+
+                    <option value="CHANGE_PASSWORD">
+                      Promena lozinke
+                    </option>
+
+                    <option value="CREATE_LESSON_REQUEST">
+                      Novi zahtev za čas
+                    </option>
+
+                    <option value="APPROVE_LESSON_REQUEST">
+                      Odobren zahtev
+                    </option>
+
+                    <option value="REJECT_LESSON_REQUEST">
+                      Odbijen zahtev
+                    </option>
+
+                    <option value="CREATE_CHANGE_REQUEST">
+                      Promena termina
+                    </option>
+
+                    <option value="APPROVE_CHANGE_REQUEST">
+                      Odobrena promena
+                    </option>
+
+                    <option value="REJECT_CHANGE_REQUEST">
+                      Odbijena promena
+                    </option>
+
+                  </select>
+
+
+                  <button
+                    onClick={getAuditLogs}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-2xl font-bold"
+                  >
+                    Primeni filtere
+                  </button>
+
+                </div>
+
+
+                {loadingAuditLogs ? (
+
+                  <div className="empty-box">
+                    Učitavanje aktivnosti...
+                  </div>
+
+                ) : auditLogs.length === 0 ? (
+
+                  <div className="empty-box">
+                    Nema evidentiranih aktivnosti.
+                  </div>
+
+                ) : (
+
+                  <div className="space-y-3">
+
+                    {auditLogs.map(
+                      (log) => (
+
+                        <div
+                          key={log.id}
+                          className="border border-slate-200 rounded-3xl p-5"
+                        >
+
+                          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+
+                            <div>
+
+                              <div className="flex flex-wrap gap-2 items-center">
+
+                                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-bold">
+                                  {auditActionLabel(
+                                    log.action
+                                  )}
+                                </span>
+
+
+                                {log.user_role && (
+                                  <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-semibold">
+                                    {roleLabel(
+                                      log.user_role
+                                    )}
+                                  </span>
+                                )}
+
+                              </div>
+
+
+                              <h4 className="font-bold text-lg mt-3">
+
+                                {log.user_name ||
+                                  "Nepoznat korisnik"}
+
+                              </h4>
+
+
+                              {log.user_email && (
+                                <p className="text-slate-500 text-sm mt-1">
+                                  {log.user_email}
+                                </p>
+                              )}
+
+                            </div>
+
+
+                            <div className="text-left lg:text-right">
+
+                              <p className="font-semibold text-slate-700">
+                                {formatAuditDate(
+                                  log.created_at
+                                )}
+                              </p>
+
+                              <p className="text-xs text-slate-400 mt-1">
+                                Log ID: {log.id}
+                              </p>
+
+                            </div>
+
+                          </div>
+
+
+                          {log.details && (
+                            <div className="bg-slate-50 rounded-2xl p-4 mt-4">
+
+                              <p className="text-sm text-slate-500 mb-1">
+                                Opis aktivnosti
+                              </p>
+
+                              <p className="text-slate-700">
+                                {log.details}
+                              </p>
+
+                            </div>
+                          )}
+
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 text-sm">
+
+                            <div className="bg-slate-50 rounded-xl p-3">
+
+                              <span className="text-slate-500">
+                                Entitet:
+                              </span>{" "}
+
+                              <b>
+                                {log.entity_type || "/"}
+                              </b>
+
+                            </div>
+
+
+                            <div className="bg-slate-50 rounded-xl p-3">
+
+                              <span className="text-slate-500">
+                                ID entiteta:
+                              </span>{" "}
+
+                              <b>
+                                {log.entity_id || "/"}
+                              </b>
+
+                            </div>
+
+
+                            <div className="bg-slate-50 rounded-xl p-3">
+
+                              <span className="text-slate-500">
+                                IP:
+                              </span>{" "}
+
+                              <b>
+                                {log.ip_address || "/"}
+                              </b>
+
+                            </div>
+
+                          </div>
+
+                        </div>
+
+                      )
+                    )}
+
+                  </div>
+
+                )}
+
+              </div>
+
+            </section>
+          )}
         </main>
 
       </div>

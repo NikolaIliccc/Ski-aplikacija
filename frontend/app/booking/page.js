@@ -234,7 +234,7 @@ export default function BookingPage() {
 
       alert(
         err.response?.data?.message ||
-          "Greška pri AI proceni nivoa."
+        "Greška pri AI proceni nivoa."
       );
     } finally {
       setAiLoading(false);
@@ -424,50 +424,39 @@ export default function BookingPage() {
 
   const submitRequest = async () => {
     try {
-      const token =
-        localStorage.getItem("token");
+      const token = localStorage.getItem("token");
 
       if (!token) {
         window.location.href = "/login";
         return;
       }
 
+      if (!aiAssessment?.id) {
+        alert("AI procena nije pronađena. Ponovo izvršite procenu.");
+        setStep(3);
+        return;
+      }
+
       await axios.post(
         "http://localhost:5000/api/lesson-requests",
         {
-          client_first_name:
-            clientFirstName,
+          client_first_name: clientFirstName,
+          client_last_name: clientLastName,
+          client_age: Number(clientAge),
+          client_phone: clientPhone,
+          client_skill_level: clientSkillLevel,
+          first_time: firstTime,
 
-          client_last_name:
-            clientLastName,
+          parent_name: isMinor
+            ? parentName
+            : null,
 
-          client_age:
-            Number(clientAge),
+          parent_phone: isMinor
+            ? clientPhone
+            : null,
 
-          client_phone:
-            clientPhone,
-
-          client_skill_level:
-            clientSkillLevel,
-
-          first_time:
-            firstTime,
-
-          parent_name:
-            isMinor
-              ? parentName
-              : null,
-
-          parent_phone:
-            isMinor
-              ? clientPhone
-              : null,
-
-          lesson_type:
-            lessonType,
-
-          lesson_mode:
-            lessonMode,
+          lesson_type: lessonType,
+          lesson_mode: lessonMode,
 
           number_of_lessons:
             lessonMode === "group"
@@ -481,15 +470,16 @@ export default function BookingPage() {
               ? groupPackage
               : null,
 
-          preferred_date:
-            preferredDate,
+          preferred_date: preferredDate,
 
           preferred_time:
             lessonMode === "group"
               ? "10:00"
               : preferredTime,
 
-          note
+          note,
+
+          ai_procena_id: aiAssessment.id
         },
         {
           headers: {
@@ -503,6 +493,7 @@ export default function BookingPage() {
       );
 
       window.location.href = "/client";
+
     } catch (err) {
       console.log(
         err.response?.data || err
@@ -510,7 +501,7 @@ export default function BookingPage() {
 
       alert(
         err.response?.data?.message ||
-          "Greška pri slanju zahteva."
+        "Greška pri slanju zahteva."
       );
     }
   };
@@ -544,11 +535,10 @@ export default function BookingPage() {
     <div className="flex items-center gap-3">
 
       <div
-        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-          step >= number
+        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${step >= number
             ? "bg-blue-600 text-white"
             : "bg-slate-200 text-slate-500"
-        }`}
+          }`}
       >
         {number}
       </div>
@@ -901,11 +891,10 @@ export default function BookingPage() {
                       onClick={() =>
                         changeLessonType("ski")
                       }
-                      className={`choice-card ${
-                        lessonType === "ski"
+                      className={`choice-card ${lessonType === "ski"
                           ? "choice-active"
                           : ""
-                      }`}
+                        }`}
                     >
                       <span className="text-4xl">
                         ⛷️
@@ -921,12 +910,11 @@ export default function BookingPage() {
                           "snowboard"
                         )
                       }
-                      className={`choice-card ${
-                        lessonType ===
-                        "snowboard"
+                      className={`choice-card ${lessonType ===
+                          "snowboard"
                           ? "choice-active"
                           : ""
-                      }`}
+                        }`}
                     >
                       <span className="text-4xl">
                         🏂
@@ -1144,7 +1132,7 @@ export default function BookingPage() {
 
                           <p className="result-value">
                             {aiAssessment.preporuceni_tip_casa ===
-                            "individual"
+                              "individual"
                               ? "Individualni čas"
                               : "Grupna nastava"}
                           </p>
@@ -1169,7 +1157,7 @@ export default function BookingPage() {
 
                       {firstTime &&
                         aiAssessment.preporuceni_tip_casa ===
-                          "group" && (
+                        "group" && (
 
                           <div className="bg-amber-50 text-amber-800 p-4 rounded-2xl mt-4">
                             Pošto prvi put
@@ -1243,7 +1231,7 @@ export default function BookingPage() {
                         )}
                         {" / "}
                         {aiAssessment.preporuceni_tip_casa ===
-                        "individual"
+                          "individual"
                           ? "individualni čas"
                           : "grupnu nastavu"}
                       </p>
@@ -1312,12 +1300,11 @@ export default function BookingPage() {
                           "individual"
                         )
                       }
-                      className={`choice-card ${
-                        lessonMode ===
-                        "individual"
+                      className={`choice-card ${lessonMode ===
+                          "individual"
                           ? "choice-active"
                           : ""
-                      }`}
+                        }`}
                     >
                       <span className="text-3xl">
                         👤
@@ -1332,11 +1319,10 @@ export default function BookingPage() {
                         onClick={() =>
                           setLessonMode("group")
                         }
-                        className={`choice-card ${
-                          lessonMode === "group"
+                        className={`choice-card ${lessonMode === "group"
                             ? "choice-active"
                             : ""
-                        }`}
+                          }`}
                       >
                         <span className="text-3xl">
                           👥
@@ -1359,7 +1345,7 @@ export default function BookingPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
 
                     {lessonMode ===
-                    "individual" ? (
+                      "individual" ? (
                       <>
 
                         <select
@@ -1415,11 +1401,11 @@ export default function BookingPage() {
                             {loadingTimes
                               ? "Učitavanje termina..."
                               : !preferredDate
-                              ? "Prvo izaberi datum"
-                              : availableTimes.length ===
-                                0
-                              ? "Nema slobodnih termina"
-                              : "Izaberi slobodan termin"}
+                                ? "Prvo izaberi datum"
+                                : availableTimes.length ===
+                                  0
+                                  ? "Nema slobodnih termina"
+                                  : "Izaberi slobodan termin"}
 
                           </option>
 
@@ -1553,7 +1539,7 @@ export default function BookingPage() {
                       <p className="text-slate-700">
                         <b>AI preporuka:</b>{" "}
                         {aiAssessment.preporuceni_tip_casa ===
-                        "individual"
+                          "individual"
                           ? "Individualni čas"
                           : "Grupna nastava"}
                       </p>
@@ -1847,11 +1833,10 @@ function QuestionYesNo({
           onClick={() =>
             onChange(true)
           }
-          className={`border-2 rounded-2xl p-4 font-bold ${
-            value === true
+          className={`border-2 rounded-2xl p-4 font-bold ${value === true
               ? "border-blue-600 bg-blue-50 text-blue-700"
               : "border-slate-200 bg-white text-slate-700"
-          }`}
+            }`}
         >
           Da
         </button>
@@ -1861,11 +1846,10 @@ function QuestionYesNo({
           onClick={() =>
             onChange(false)
           }
-          className={`border-2 rounded-2xl p-4 font-bold ${
-            value === false
+          className={`border-2 rounded-2xl p-4 font-bold ${value === false
               ? "border-blue-600 bg-blue-50 text-blue-700"
               : "border-slate-200 bg-white text-slate-700"
-          }`}
+            }`}
         >
           Ne
         </button>

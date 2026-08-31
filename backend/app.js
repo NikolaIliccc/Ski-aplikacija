@@ -14,6 +14,7 @@ const availableInstructorRoutes = require("./routes/availableInstructorRoutes");
 const changeRequestRoutes = require("./routes/changeRequestRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const aiRoutes = require("./routes/aiRoutes");
+const auditLogRoutes = require("./routes/auditLogRoutes");
 const app = express();
 
 app.use(cors());
@@ -30,7 +31,7 @@ app.use("/api/available-instructors", availableInstructorRoutes);
 app.use("/api/change-requests", changeRequestRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/ai", aiRoutes);
-
+app.use("/api/audit-logs",auditLogRoutes);
 app.get("/", (req, res) => {
   res.send("API radi");
 });

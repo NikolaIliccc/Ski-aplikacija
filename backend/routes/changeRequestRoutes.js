@@ -3,6 +3,7 @@ const router = require("express").Router();
 const pool = require("../db/db");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
+const { logActivity, getIpAddress } = require("../utils/auditLogger");
 
 // CLIENT - šalje zahtev za promenu časa
 router.post(
@@ -56,6 +57,25 @@ router.post(
                     "pending"
                 ]
             );
+
+            await logActivity({
+                userId: req.user.id,
+
+                action:
+                    "CREATE_CHANGE_REQUEST",
+
+                entityType:
+                    "lesson_change_request",
+
+                entityId:
+                    newRequest.rows[0].id,
+
+                details:
+                    `Korisnik je zatražio promenu termina časa ID ${lesson_id}.`,
+
+                ipAddress:
+                    getIpAddress(req)
+            });
 
             res.json({
                 message: "Zahtev za promenu je poslat.",
@@ -161,7 +181,24 @@ router.post(
          RETURNING *`,
                 ["rejected", booker_response || null, req.params.id]
             );
+            await logActivity({
+                userId: req.user.id,
 
+                action:
+                    "REJECT_CHANGE_REQUEST",
+
+                entityType:
+                    "lesson_change_request",
+
+                entityId:
+                    Number(req.params.id),
+
+                details:
+                    "Menadžer/administrator je odbio zahtev za promenu termina.",
+
+                ipAddress:
+                    getIpAddress(req)
+            });
             res.json({
                 message: "Zahtev za promenu je odbijen.",
                 change_request: updated.rows[0]
@@ -304,7 +341,24 @@ router.post(
                     changeRequestId
                 ]
             );
+            await logActivity({
+                userId: req.user.id,
 
+                action:
+                    "APPROVE_CHANGE_REQUEST",
+
+                entityType:
+                    "lesson_change_request",
+
+                entityId:
+                    Number(changeRequestId),
+
+                details:
+                    `Promena termina časa ID ${lesson.id} je odobrena.`,
+
+                ipAddress:
+                    getIpAddress(req)
+            });
             res.json({
                 message: "Promena termina je odobrena.",
                 change_request: updatedChangeRequest.rows[0]

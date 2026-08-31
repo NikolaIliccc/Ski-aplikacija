@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import LessonsCalendar from "../../components/LessonsCalendar";
 
 export default function AdminPage() {
+  const searchParams = useSearchParams();
+
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
   const [activeSection, setActiveSection] = useState("requests");
   const [requestTypeFilter, setRequestTypeFilter] = useState("all");
   const [requestModeFilter, setRequestModeFilter] = useState("all");
@@ -333,9 +337,22 @@ export default function AdminPage() {
     return value;
   };
   const levelLabel = (value) => {
-    if (value === "beginner") return "Nivo 1";
-    if (value === "intermediate") return "Nivo 2";
-    if (value === "advanced") return "Nivo 3";
+    if (value === "beginner") return "Početnik";
+    if (value === "intermediate") return "Srednji nivo";
+    if (value === "advanced") return "Napredni";
+    return value || "/";
+  };
+
+  const lessonModeLabel = (value) => {
+    if (value === "individual") return "Individualni čas";
+    if (value === "group") return "Grupna nastava";
+    return value || "/";
+  };
+
+  const applicationLevelToAiLevel = (value) => {
+    if (value === "pocetnik") return "beginner";
+    if (value === "srednji") return "intermediate";
+    if (value === "napredni") return "advanced";
     return value;
   };
   useEffect(() => {
@@ -348,6 +365,7 @@ export default function AdminPage() {
     }
 
     const user = JSON.parse(savedUser);
+    setCurrentUser(user);
 
     if (user.role !== "admin" && user.role !== "booker") {
       window.location.href = "/";
@@ -355,6 +373,22 @@ export default function AdminPage() {
     }
 
     setCheckingAuth(false);
+    const requestedSection =
+      searchParams.get("section");
+
+    const allowedSections = [
+      "requests",
+      "lessons",
+      "changeRequests",
+      "calendar"
+    ];
+
+    if (
+      requestedSection &&
+      allowedSections.includes(requestedSection)
+    ) {
+      setActiveSection(requestedSection);
+    }
 
     getRequests();
     getLessons();
@@ -426,7 +460,11 @@ export default function AdminPage() {
 
             <div>
               <h1 className="text-2xl font-bold">Ski School</h1>
-              <p className="text-blue-100 text-sm">Booker panel</p>
+              <p className="text-blue-100 text-sm">
+                {currentUser?.role === "admin"
+                  ? "Administrator · menadžerske funkcije"
+                  : "Menadžer panel"}
+              </p>
             </div>
           </div>
 
@@ -466,9 +504,20 @@ export default function AdminPage() {
             </button>
           </div>
 
+          {currentUser?.role === "admin" && (
+            <button
+              onClick={() => {
+                window.location.href = "/administrator";
+              }}
+              className="mt-8 w-full bg-blue-600 border border-blue-300 text-white rounded-2xl px-4 py-3 font-bold hover:bg-blue-500"
+            >
+              ← Administrator panel
+            </button>
+          )}
+
           <button
             onClick={logout}
-            className="mt-10 w-full bg-white text-blue-700 rounded-2xl px-4 py-3 font-bold"
+            className="mt-3 w-full bg-white text-blue-700 rounded-2xl px-4 py-3 font-bold"
           >
             Logout
           </button>
@@ -590,6 +639,100 @@ export default function AdminPage() {
                           <p className="mt-4 bg-slate-50 rounded-2xl p-3 text-slate-700">
                             <b>Napomena:</b> {request.note}
                           </p>
+                        )}
+
+                        {/* AI PROCENA */}
+
+                        {request.ai_procena ? (
+                          <div className="mt-5 bg-purple-50 border border-purple-200 rounded-3xl p-5">
+
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+                              <div>
+                                <p className="text-purple-600 text-sm font-bold">
+                                  🤖 AI PROCENA NIVOA
+                                </p>
+
+                                <h5 className="text-xl font-bold text-slate-900 mt-1">
+                                  AI preporuka
+                                </h5>
+                              </div>
+
+                              <span className="bg-purple-100 text-purple-700 px-3 py-2 rounded-full text-sm font-bold">
+                                AI preporuka
+                              </span>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+
+                              <div className="bg-white rounded-2xl p-4 border border-purple-100">
+                                <p className="text-sm text-slate-500">
+                                  Procenjeni nivo
+                                </p>
+
+                                <p className="font-bold text-lg text-purple-800 mt-1">
+                                  {levelLabel(request.ai_procena.procenjeni_nivo)}
+                                </p>
+                              </div>
+
+                              <div className="bg-white rounded-2xl p-4 border border-purple-100">
+                                <p className="text-sm text-slate-500">
+                                  Preporučeni oblik nastave
+                                </p>
+
+                                <p className="font-bold text-lg text-purple-800 mt-1">
+                                  {lessonModeLabel(
+                                    request.ai_procena.preporuceni_tip_casa
+                                  )}
+                                </p>
+                              </div>
+
+                            </div>
+
+                            {request.ai_procena.obrazlozenje && (
+                              <div className="bg-white rounded-2xl p-4 border border-purple-100 mt-3">
+                                <p className="text-sm text-slate-500 mb-2">
+                                  Obrazloženje AI preporuke
+                                </p>
+
+                                <p className="text-slate-700 leading-6">
+                                  {request.ai_procena.obrazlozenje}
+                                </p>
+                              </div>
+                            )}
+
+                            <div className="mt-4 bg-slate-100 text-slate-800 rounded-2xl p-4 border border-slate-200">
+                              <p className="font-bold mb-3">
+                                Konačan izbor korisnika
+                              </p>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                                <p>
+                                  <span className="text-slate-300">Nivo:</span>{" "}
+                                  <b>{request.client_skill_level}</b>
+                                </p>
+
+                                <p>
+                                  <span className="text-slate-300">Nastava:</span>{" "}
+                                  <b>{lessonModeLabel(request.lesson_mode)}</b>
+                                </p>
+                              </div>
+                            </div>
+
+                            {(applicationLevelToAiLevel(request.client_skill_level) !==
+                              request.ai_procena.procenjeni_nivo ||
+                              request.lesson_mode !==
+                              request.ai_procena.preporuceni_tip_casa) && (
+
+                                <div className="mt-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl p-4 font-semibold">
+                                  ⚠️ Korisnik je promenio AI preporuku. Proverite izbor pre odobravanja zahteva.
+                                </div>
+                              )}
+
+                          </div>
+                        ) : (
+                          <div className="mt-5 bg-slate-50 border border-slate-200 rounded-2xl p-4 text-slate-500">
+                            AI procena nije dostupna za ovaj zahtev.
+                          </div>
                         )}
 
                         <div className="mt-5 bg-blue-50 rounded-3xl p-5">

@@ -394,7 +394,7 @@ export default function Home() {
 
           )}
 
-        </section>
+        </section>  
 
         <section id="faq" className="mt-20">
           <div className="text-center mb-8">
