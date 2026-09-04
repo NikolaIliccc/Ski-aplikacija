@@ -4,6 +4,8 @@ import { useState } from "react";
 import axios from "axios";
 import { GoogleLogin } from "@react-oauth/google";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,7 +25,7 @@ export default function LoginPage() {
   };
   const login = async () => {
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
+      const res = await axios.post(`${API_URL}/api/auth/login`, {
         email,
         password
       });
@@ -40,7 +42,7 @@ export default function LoginPage() {
 
   const googleLogin = async (credentialResponse) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/google", {
+      const res = await axios.post(`${API_URL}/api/auth/google`, {
         credential: credentialResponse.credential
       });
 

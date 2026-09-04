@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import LessonsCalendar from "../../components/LessonsCalendar";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+
 export default function AdminPage() {
-  const searchParams = useSearchParams();
 
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
@@ -36,7 +37,7 @@ export default function AdminPage() {
 
   const getRequests = async () => {
     const token = localStorage.getItem("token");
-    const res = await axios.get("http://localhost:5000/api/lesson-requests", {
+    const res = await axios.get(`${API_URL}/api/lesson-requests`, {
       headers: { token }
     });
     setRequests(res.data);
@@ -44,7 +45,7 @@ export default function AdminPage() {
 
   const getLessons = async () => {
     const token = localStorage.getItem("token");
-    const res = await axios.get("http://localhost:5000/api/lessons", {
+    const res = await axios.get(`${API_URL}/api/lessons`, {
       headers: { token }
     });
     setLessons(res.data);
@@ -54,7 +55,7 @@ export default function AdminPage() {
       const token = localStorage.getItem("token");
 
       const res = await axios.get(
-        "http://localhost:5000/api/change-requests",
+        `${API_URL}/api/change-requests`,
         {
           headers: { token }
         }
@@ -71,7 +72,7 @@ export default function AdminPage() {
       const token = localStorage.getItem("token");
 
       await axios.post(
-        `http://localhost:5000/api/change-requests/${changeRequestId}/approve`,
+        `${API_URL}/api/change-requests/${changeRequestId}/approve`,
         {
           booker_response:
             bookerResponse || "Promena termina je odobrena."
@@ -102,7 +103,7 @@ export default function AdminPage() {
       const token = localStorage.getItem("token");
 
       await axios.post(
-        `http://localhost:5000/api/change-requests/${changeRequestId}/reject`,
+        `${API_URL}/api/change-requests/${changeRequestId}/reject`,
         {
           booker_response:
             bookerResponse || "Promena termina nije moguća."
@@ -126,9 +127,10 @@ export default function AdminPage() {
       );
     }
   };
+
   const getInstructors = async () => {
     const token = localStorage.getItem("token");
-    const res = await axios.get("http://localhost:5000/api/instructors", {
+    const res = await axios.get(`${API_URL}/api/instructors`, {
       headers: { token }
     });
 
@@ -161,7 +163,7 @@ export default function AdminPage() {
 
       const date = request.preferred_date.split("T")[0];
 
-      const res = await axios.get("http://localhost:5000/api/available-instructors", {
+      const res = await axios.get(`${API_URL}/api/available-instructors`, {
         headers: { token },
         params: {
           lesson_type: request.lesson_type,
@@ -189,7 +191,7 @@ export default function AdminPage() {
       const token = localStorage.getItem("token");
 
       await axios.post(
-        `http://localhost:5000/api/lesson-requests/${request.id}/approve`,
+        `${API_URL}/api/lesson-requests/${request.id}/approve`,
         {
           instructor_id: Number(selectedInstructor),
           lesson_date: getDateForBackend(request.preferred_date),
@@ -220,7 +222,7 @@ export default function AdminPage() {
       const token = localStorage.getItem("token");
 
       await axios.post(
-        `http://localhost:5000/api/lesson-requests/${requestId}/reject`,
+        `${API_URL}/api/lesson-requests/${requestId}/reject`,
         {},
         { headers: { token } }
       );
@@ -237,11 +239,11 @@ export default function AdminPage() {
     try {
       const token = localStorage.getItem("token");
 
-      await axios.delete(`http://localhost:5000/api/lessons/${lessonId}`, {
+      await axios.delete(`${API_URL}/api/lessons/${lessonId}`, {
         headers: { token }
       });
 
-      alert("Čas je otkazan i obrisan.");
+      alert("Čas je uspesno otkazan.");
       getLessons();
     } catch (err) {
       console.log(err.response?.data || err);
@@ -266,7 +268,7 @@ export default function AdminPage() {
       const token = localStorage.getItem("token");
 
       await axios.put(
-        `http://localhost:5000/api/lessons/${lessonId}`,
+        `${API_URL}/api/lessons/${lessonId}`,
         {
           instructor_id: Number(editInstructorId),
           lesson_date: editLessonDate,
@@ -373,8 +375,10 @@ export default function AdminPage() {
     }
 
     setCheckingAuth(false);
-    const requestedSection =
-      searchParams.get("section");
+
+    // Čitanje ?section= direktno iz URL-a
+    const params = new URLSearchParams(window.location.search);
+    const requestedSection = params.get("section");
 
     const allowedSections = [
       "requests",
@@ -417,6 +421,11 @@ export default function AdminPage() {
   });
 
   const filteredLessons = lessons.filter((lesson) => {
+    // Prikazujemo samo aktivne zakazane časove
+    if (lesson.status !== "scheduled") {
+      return false;
+    }
+
     if (
       lessonInstructorFilter !== "all" &&
       lesson.instructor_name !== lessonInstructorFilter
@@ -539,7 +548,7 @@ export default function AdminPage() {
               </div>
 
               <div className="bg-white rounded-3xl shadow p-5 text-center">
-                <p className="text-3xl font-bold text-green-600">{lessons.length}</p>
+                <p className="text-3xl font-bold text-green-600">{lessons.filter((lesson) => lesson.status === "scheduled").length}</p>
                 <p className="text-sm text-slate-500">Časovi</p>
               </div>
 

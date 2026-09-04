@@ -383,15 +383,17 @@ router.patch(
 // =====================================================
 // DELETE USER - samo admin
 // =====================================================
-
 router.delete(
   "/users/:id",
   authMiddleware,
   roleMiddleware("admin"),
   async (req, res) => {
+    const client = await pool.connect();
+
     try {
       const userId = Number(req.params.id);
 
+      // Admin ne sme da obriše samog sebe
       if (userId === Number(req.user.id)) {
         return res.status(400).json({
           message:
@@ -399,46 +401,71 @@ router.delete(
         });
       }
 
-      const userResult = await pool.query(
-        `SELECT
-           id,
-           role
-         FROM users
-         WHERE id = $1`,
+      await client.query("BEGIN");
+
+      // Provera da korisnik postoji
+      const userResult = await client.query(
+        `
+        SELECT id, name, email, role
+        FROM users
+        WHERE id = $1
+        `,
         [userId]
       );
 
       if (userResult.rows.length === 0) {
+        await client.query("ROLLBACK");
+
         return res.status(404).json({
           message: "Korisnik nije pronađen."
         });
       }
 
-      if (
-        userResult.rows[0].role === "instructor"
-      ) {
-        return res.status(400).json({
-          message:
-            "Instruktora obrišite preko sekcije Instruktori."
-        });
-      }
+      // -------------------------------------------------
+      // 1. Brisanje povezanih STUDENTS zapisa
+      // -------------------------------------------------
 
-      await pool.query(
-        `DELETE FROM users
-         WHERE id = $1`,
+      await client.query(
+        `
+        DELETE FROM students
+        WHERE parent_id = $1
+        `,
         [userId]
       );
 
+      // -------------------------------------------------
+      // 2. Tek sada brisanje korisnika
+      // -------------------------------------------------
+
+      const deletedUser = await client.query(
+        `
+        DELETE FROM users
+        WHERE id = $1
+        RETURNING id, name, email, role
+        `,
+        [userId]
+      );
+
+      await client.query("COMMIT");
+
       res.json({
-        message:
-          "Korisnik je uspešno obrisan."
+        message: "Korisnik je uspešno trajno obrisan.",
+        user: deletedUser.rows[0]
       });
+
     } catch (err) {
-      console.log(err.message);
+      await client.query("ROLLBACK");
+
+      console.log("DELETE USER ERROR:", err.message);
 
       res.status(500).json({
+        message:
+          "Došlo je do greške prilikom brisanja korisnika.",
         error: err.message
       });
+
+    } finally {
+      client.release();
     }
   }
 );

@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function InstructorPage() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [user, setUser] = useState(null);
@@ -22,7 +24,7 @@ export default function InstructorPage() {
     const token = localStorage.getItem("token");
 
     const res = await axios.get(
-      "http://localhost:5000/api/lessons/my",
+      `${API_URL}/api/lessons/my`,
       {
         headers: { token }
       }
@@ -35,7 +37,7 @@ export default function InstructorPage() {
     const token = localStorage.getItem("token");
 
     const res = await axios.get(
-      "http://localhost:5000/api/unavailability/my",
+      `${API_URL}/api/unavailability/my`,
       {
         headers: { token }
       }
@@ -54,7 +56,7 @@ export default function InstructorPage() {
       const token = localStorage.getItem("token");
 
       await axios.post(
-        "http://localhost:5000/api/unavailability/my",
+        `${API_URL}/api/unavailability/my`,
         {
           unavailable_date: busyDate,
           start_time: busyStartTime,
@@ -89,7 +91,7 @@ export default function InstructorPage() {
       const token = localStorage.getItem("token");
 
       await axios.delete(
-        `http://localhost:5000/api/unavailability/my/${busyId}`,
+       `${API_URL}/api/unavailability/my/${busyId}`,
         {
           headers: { token }
         }

@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function BookingPage() {
   const [step, setStep] = useState(1);
 
@@ -170,7 +172,7 @@ export default function BookingPage() {
         : aiExperience;
 
       const res = await axios.post(
-        "http://localhost:5000/api/ai/skill-assessment",
+        `${API_URL}/api/ai/skill-assessment`,
         {
           disciplina: lessonType,
 
@@ -338,7 +340,7 @@ export default function BookingPage() {
       setPreferredTime("");
 
       const res = await axios.get(
-        "http://localhost:5000/api/availability",
+        `${API_URL}/api/availability`,
         {
           params: {
             date: preferredDate,
@@ -438,7 +440,7 @@ export default function BookingPage() {
       }
 
       await axios.post(
-        "http://localhost:5000/api/lesson-requests",
+        `${API_URL}/api/lesson-requests`,
         {
           client_first_name: clientFirstName,
           client_last_name: clientLastName,

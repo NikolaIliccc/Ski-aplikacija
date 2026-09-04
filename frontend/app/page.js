@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function Home() {
   const [instructors, setInstructors] = useState([]);
   const [instructorStart, setInstructorStart] = useState(0);
@@ -11,7 +13,7 @@ export default function Home() {
   useEffect(() => {
     const getPublicInstructors = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/instructors/public");
+        const res = await axios.get(`${API_URL}/api/instructors/public`);
         setInstructors(res.data);
       } catch (err) {
         console.log(err.response?.data || err);

@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+const API = process.env.NEXT_PUBLIC_API_URL;
+
 export default function ClientPage() {
   const [checkingAuth, setCheckingAuth] = useState(true);
 
@@ -52,7 +54,7 @@ export default function ClientPage() {
       const token = localStorage.getItem("token");
 
       const res = await axios.get(
-        "http://localhost:5000/api/auth/profile",
+      `${API}/api/auth/profile`,
         {
           headers: { token }
         }
@@ -91,7 +93,7 @@ export default function ClientPage() {
         localStorage.getItem("token");
 
       const res = await axios.put(
-        "http://localhost:5000/api/auth/profile",
+        `${API}/api/auth/profile`,
         {
           name: profileName,
           email: profileEmail
@@ -165,7 +167,7 @@ export default function ClientPage() {
         localStorage.getItem("token");
 
       const res = await axios.put(
-        "http://localhost:5000/api/auth/change-password",
+        `${API}/api/auth/change-password`,
         {
           currentPassword,
           newPassword,
@@ -207,7 +209,7 @@ export default function ClientPage() {
         localStorage.getItem("token");
 
       const res = await axios.get(
-        "http://localhost:5000/api/lesson-requests/my",
+        `${API}/api/lesson-requests/my`,
         {
           headers: { token }
         }
@@ -233,7 +235,7 @@ export default function ClientPage() {
         localStorage.getItem("token");
 
       const res = await axios.get(
-        "http://localhost:5000/api/lessons/client/my",
+        `${API}/api/lessons/client/my`,
         {
           headers: { token }
         }
@@ -259,7 +261,7 @@ export default function ClientPage() {
         localStorage.getItem("token");
 
       const res = await axios.get(
-        "http://localhost:5000/api/change-requests/my",
+       `${API}/api/change-requests/my`,
         {
           headers: { token }
         }
@@ -292,7 +294,7 @@ export default function ClientPage() {
         localStorage.getItem("token");
 
       await axios.post(
-        "http://localhost:5000/api/change-requests",
+        `${API}/api/change-requests`,
         {
           lesson_id: lessonId,
           requested_date: requestedDate,

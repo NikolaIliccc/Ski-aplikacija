@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-export default function AdministratorPage() {
-  const API = "http://localhost:5000";
+const API = process.env.NEXT_PUBLIC_API_URL;
 
+export default function AdministratorPage() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [activeSection, setActiveSection] = useState("overview");
 
@@ -397,27 +397,26 @@ export default function AdministratorPage() {
   const deleteUser = async (user) => {
     try {
       const confirmed = window.confirm(
-        `Da li ste sigurni da želite da obrišete korisnika ${user.name}?`
+        `Da li ste sigurni da želite TRAJNO da obrišete korisnika ${user.name}? Ova akcija se ne može poništiti.`
       );
 
       if (!confirmed) {
         return;
       }
 
-      const token = getToken();
+      const token = localStorage.getItem("token");
 
       await axios.delete(
         `${API}/api/admin/users/${user.id}`,
         {
-          headers: {
-            token
-          }
+          headers: { token }
         }
       );
 
-      alert("Korisnik je uspešno obrisan.");
+      alert("Korisnik je trajno obrisan.");
 
       getUsers();
+
     } catch (err) {
       console.log(
         "DELETE USER ERROR:",

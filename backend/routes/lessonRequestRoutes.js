@@ -1,41 +1,12 @@
 const router = require("express").Router();
 
-const jwt = require("jsonwebtoken");
-
 const pool = require("../db/db");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
-const { logActivity, getIpAddress } = require("../utils/auditLogger");
-
-// =====================================================
-// OPTIONAL AUTH
-// Ako korisnik ima token, povezuje zahtev sa korisnikom.
-// Ako nema token, zahtev i dalje može da se kreira.
-// =====================================================
-
-const optionalAuth = (req, res, next) => {
-  const token = req.header("token");
-
-  if (!token) {
-    req.user = null;
-    return next();
-  }
-
-  try {
-    const verified = jwt.verify(
-      token,
-      process.env.JWT_SECRET
-    );
-
-    req.user = verified;
-
-    next();
-
-  } catch (err) {
-    req.user = null;
-    next();
-  }
-};
+const {
+  logActivity,
+  getIpAddress
+} = require("../utils/auditLogger");
 
 
 // =====================================================
@@ -74,378 +45,371 @@ const isInstructorBusy = async (
 
 // =====================================================
 // CREATE BOOKING REQUEST
+// SAMO ULOGOVAN KLIJENT
 // =====================================================
 
-router.post("/", optionalAuth, async (req, res) => {
-  const client = await pool.connect();
+router.post(
+  "/",
+  authMiddleware,
+  roleMiddleware("client"),
+  async (req, res) => {
+    const client = await pool.connect();
 
-  try {
-    await client.query("BEGIN");
+    try {
+      await client.query("BEGIN");
 
-    const {
-      client_first_name,
-      client_last_name,
-      client_age,
-      client_phone,
-      client_skill_level,
-      first_time,
-      parent_name,
-      parent_phone,
-      lesson_type,
-      lesson_mode,
-      number_of_lessons,
-      group_package,
-      preferred_date,
-      preferred_time,
-      note,
-
-      // AI procena koju šalje BookingPage
-      ai_procena_id
-    } = req.body;
-
-
-    // =====================================================
-    // OSNOVNA VALIDACIJA
-    // =====================================================
-
-    if (
-      !client_first_name ||
-      !client_last_name ||
-      !client_age ||
-      !client_phone ||
-      !client_skill_level ||
-      !lesson_type ||
-      !lesson_mode ||
-      !preferred_date
-    ) {
-      await client.query("ROLLBACK");
-
-      return res.status(400).json({
-        message: "Popunite sva obavezna polja."
-      });
-    }
+      const {
+        client_first_name,
+        client_last_name,
+        client_age,
+        client_phone,
+        client_skill_level,
+        first_time,
+        parent_name,
+        parent_phone,
+        lesson_type,
+        lesson_mode,
+        number_of_lessons,
+        group_package,
+        preferred_date,
+        preferred_time,
+        note,
+        ai_procena_id
+      } = req.body;
 
 
-    if (
-      Number(client_age) < 18 &&
-      !parent_name
-    ) {
-      await client.query("ROLLBACK");
+      // =====================================================
+      // OSNOVNA VALIDACIJA
+      // =====================================================
 
-      return res.status(400).json({
-        message:
-          "Za maloletne polaznike morate uneti ime roditelja/staratelja."
-      });
-    }
-
-
-    if (
-      first_time === true &&
-      lesson_mode === "group"
-    ) {
-      await client.query("ROLLBACK");
-
-      return res.status(400).json({
-        message:
-          "Polaznici koji prvi put skijaju ili snowboarduju mogu zakazati samo individualni čas."
-      });
-    }
-
-
-    if (
-      lesson_mode === "individual" &&
-      !preferred_time
-    ) {
-      await client.query("ROLLBACK");
-
-      return res.status(400).json({
-        message:
-          "Za individualni čas morate izabrati željeno vreme."
-      });
-    }
-
-
-    // =====================================================
-    // BROJ ČASOVA / VREME
-    // =====================================================
-
-    let finalNumberOfLessons =
-      Number(number_of_lessons);
-
-    let finalPreferredTime =
-      preferred_time;
-
-
-    if (lesson_mode === "group") {
-      finalPreferredTime = "10:00";
-
-      if (group_package === "2h") {
-        finalNumberOfLessons = 2;
-
-      } else if (
-        group_package === "4h_no_lunch"
-      ) {
-        finalNumberOfLessons = 4;
-
-      } else if (
-        group_package === "4h_lunch"
-      ) {
-        finalNumberOfLessons = 4;
-
-      } else {
-        await client.query("ROLLBACK");
-
-        return res.status(400).json({
-          message:
-            "Izaberite validan paket grupne nastave."
-        });
-      }
-    }
-
-
-    const userId =
-      req.user ? req.user.id : null;
-
-
-    // =====================================================
-    // PROVERA AI PROCENE
-    // =====================================================
-
-    let aiAssessment = null;
-
-    if (ai_procena_id) {
-      // AI procena treba da bude povezana sa ulogovanim korisnikom
-      if (!userId) {
-        await client.query("ROLLBACK");
-
-        return res.status(401).json({
-          message:
-            "Za povezivanje AI procene morate biti prijavljeni."
-        });
-      }
-
-
-      const aiCheck = await client.query(
-        `
-        SELECT *
-        FROM ai_procene
-        WHERE id = $1
-          AND korisnik_id = $2
-        `,
-        [
-          ai_procena_id,
-          userId
-        ]
-      );
-
-
-      if (aiCheck.rows.length === 0) {
-        await client.query("ROLLBACK");
-
-        return res.status(400).json({
-          message:
-            "AI procena nije pronađena ili ne pripada prijavljenom korisniku."
-        });
-      }
-
-
-      aiAssessment =
-        aiCheck.rows[0];
-
-
-      // Sprečava da ista AI procena bude povezana
-      // sa više zahteva
       if (
-        aiAssessment.zahtev_rezervacije_id
+        !client_first_name ||
+        !client_last_name ||
+        !client_age ||
+        !client_phone ||
+        !client_skill_level ||
+        !lesson_type ||
+        !lesson_mode ||
+        !preferred_date
+      ) {
+        await client.query("ROLLBACK");
+
+        return res.status(400).json({
+          message: "Popunite sva obavezna polja."
+        });
+      }
+
+
+      if (
+        Number(client_age) < 18 &&
+        !parent_name
       ) {
         await client.query("ROLLBACK");
 
         return res.status(400).json({
           message:
-            "Ova AI procena je već povezana sa drugim zahtevom."
+            "Za maloletne polaznike morate uneti ime roditelja/staratelja."
         });
       }
-    }
 
 
-    // =====================================================
-    // KREIRANJE ZAHTEVA
-    // =====================================================
+      if (
+        first_time === true &&
+        lesson_mode === "group"
+      ) {
+        await client.query("ROLLBACK");
 
-    const newRequest =
-      await client.query(
-        `
-        INSERT INTO lesson_requests
-        (
-          user_id,
-          client_first_name,
-          client_last_name,
-          client_age,
-          client_phone,
-          client_skill_level,
-          first_time,
-          parent_name,
-          parent_phone,
-          lesson_type,
-          lesson_mode,
-          number_of_lessons,
-          group_package,
-          preferred_date,
-          preferred_time,
-          duration_minutes,
-          note,
-          status
-        )
-        VALUES
-        (
-          $1,$2,$3,$4,$5,$6,$7,$8,$9,
-          $10,$11,$12,$13,$14,$15,$16,$17,$18
-        )
-        RETURNING *
-        `,
-        [
-          userId,
-          client_first_name,
-          client_last_name,
-          Number(client_age),
-          client_phone,
-          client_skill_level,
-          first_time === true,
-          parent_name || null,
-
-          Number(client_age) < 18
-            ? client_phone
-            : parent_phone || null,
-
-          lesson_type,
-          lesson_mode,
-          finalNumberOfLessons,
-
-          lesson_mode === "group"
-            ? group_package
-            : null,
-
-          preferred_date,
-          finalPreferredTime,
-          60,
-          note || null,
-          "pending"
-        ]
-      );
+        return res.status(400).json({
+          message:
+            "Polaznici koji prvi put skijaju ili snowboarduju mogu zakazati samo individualni čas."
+        });
+      }
 
 
-    const createdRequest =
-      newRequest.rows[0];
+      if (
+        lesson_mode === "individual" &&
+        !preferred_time
+      ) {
+        await client.query("ROLLBACK");
+
+        return res.status(400).json({
+          message:
+            "Za individualni čas morate izabrati željeno vreme."
+        });
+      }
 
 
-    // =====================================================
-    // POVEZIVANJE AI PROCENE SA ZAHTEVOM
-    // =====================================================
+      // =====================================================
+      // BROJ ČASOVA / VREME
+      // =====================================================
 
-    let linkedAiAssessment = null;
+      let finalNumberOfLessons =
+        Number(number_of_lessons);
 
-    if (ai_procena_id && userId) {
-      const updatedAi =
-        await client.query(
+      let finalPreferredTime =
+        preferred_time;
+
+
+      if (lesson_mode === "group") {
+        finalPreferredTime = "10:00";
+
+        if (group_package === "2h") {
+          finalNumberOfLessons = 2;
+
+        } else if (
+          group_package === "4h_no_lunch"
+        ) {
+          finalNumberOfLessons = 4;
+
+        } else if (
+          group_package === "4h_lunch"
+        ) {
+          finalNumberOfLessons = 4;
+
+        } else {
+          await client.query("ROLLBACK");
+
+          return res.status(400).json({
+            message:
+              "Izaberite validan paket grupne nastave."
+          });
+        }
+      }
+
+
+      const userId = req.user.id;
+
+
+      // =====================================================
+      // PROVERA AI PROCENE
+      // =====================================================
+
+      let aiAssessment = null;
+
+      if (ai_procena_id) {
+        const aiCheck = await client.query(
           `
-          UPDATE ai_procene
-          SET zahtev_rezervacije_id = $1
-          WHERE id = $2
-            AND korisnik_id = $3
-            AND zahtev_rezervacije_id IS NULL
-          RETURNING *
+          SELECT *
+          FROM ai_procene
+          WHERE id = $1
+            AND korisnik_id = $2
           `,
           [
-            createdRequest.id,
             ai_procena_id,
             userId
           ]
         );
 
 
-      if (updatedAi.rows.length === 0) {
-        await client.query("ROLLBACK");
+        if (aiCheck.rows.length === 0) {
+          await client.query("ROLLBACK");
 
-        return res.status(400).json({
-          message:
-            "AI procena nije mogla da se poveže sa zahtevom."
-        });
+          return res.status(400).json({
+            message:
+              "AI procena nije pronađena ili ne pripada prijavljenom korisniku."
+          });
+        }
+
+
+        aiAssessment =
+          aiCheck.rows[0];
+
+
+        if (
+          aiAssessment.zahtev_rezervacije_id
+        ) {
+          await client.query("ROLLBACK");
+
+          return res.status(400).json({
+            message:
+              "Ova AI procena je već povezana sa drugim zahtevom."
+          });
+        }
       }
 
 
-      linkedAiAssessment =
-        updatedAi.rows[0];
-    }
-    await logActivity(
-      {
-        userId,
+      // =====================================================
+      // KREIRANJE ZAHTEVA
+      // =====================================================
 
-        action:
-          "CREATE_LESSON_REQUEST",
+      const newRequest =
+        await client.query(
+          `
+          INSERT INTO lesson_requests
+          (
+            user_id,
+            client_first_name,
+            client_last_name,
+            client_age,
+            client_phone,
+            client_skill_level,
+            first_time,
+            parent_name,
+            parent_phone,
+            lesson_type,
+            lesson_mode,
+            number_of_lessons,
+            group_package,
+            preferred_date,
+            preferred_time,
+            duration_minutes,
+            note,
+            status
+          )
+          VALUES
+          (
+            $1,$2,$3,$4,$5,$6,$7,$8,$9,
+            $10,$11,$12,$13,$14,$15,$16,$17,$18
+          )
+          RETURNING *
+          `,
+          [
+            userId,
+            client_first_name,
+            client_last_name,
+            Number(client_age),
+            client_phone,
+            client_skill_level,
+            first_time === true,
+            parent_name || null,
 
-        entityType:
-          "lesson_request",
+            Number(client_age) < 18
+              ? client_phone
+              : parent_phone || null,
 
-        entityId:
-          createdRequest.id,
+            lesson_type,
+            lesson_mode,
+            finalNumberOfLessons,
 
-        details:
-          `Poslat zahtev za ${lesson_type} čas. ` +
-          `Tip nastave: ${lesson_mode}.`,
+            lesson_mode === "group"
+              ? group_package
+              : null,
 
-        ipAddress:
-          getIpAddress(req)
-      },
-      client
-    );
-
-    await client.query("COMMIT");
-
-
-    res.json({
-      message:
-        "Zahtev uspešno poslat.",
-
-      request:
-        createdRequest,
-
-      ai_procena:
-        linkedAiAssessment
-    });
+            preferred_date,
+            finalPreferredTime,
+            60,
+            note || null,
+            "pending"
+          ]
+        );
 
 
-  } catch (err) {
-    try {
-      await client.query("ROLLBACK");
-    } catch (rollbackError) {
-      console.log(
-        "ROLLBACK ERROR:",
-        rollbackError.message
+      const createdRequest =
+        newRequest.rows[0];
+
+
+      // =====================================================
+      // POVEZIVANJE AI PROCENE SA ZAHTEVOM
+      // =====================================================
+
+      let linkedAiAssessment = null;
+
+      if (ai_procena_id) {
+        const updatedAi =
+          await client.query(
+            `
+            UPDATE ai_procene
+            SET zahtev_rezervacije_id = $1
+            WHERE id = $2
+              AND korisnik_id = $3
+              AND zahtev_rezervacije_id IS NULL
+            RETURNING *
+            `,
+            [
+              createdRequest.id,
+              ai_procena_id,
+              userId
+            ]
+          );
+
+
+        if (updatedAi.rows.length === 0) {
+          await client.query("ROLLBACK");
+
+          return res.status(400).json({
+            message:
+              "AI procena nije mogla da se poveže sa zahtevom."
+          });
+        }
+
+
+        linkedAiAssessment =
+          updatedAi.rows[0];
+      }
+
+
+      await logActivity(
+        {
+          userId,
+
+          action:
+            "CREATE_LESSON_REQUEST",
+
+          entityType:
+            "lesson_request",
+
+          entityId:
+            createdRequest.id,
+
+          details:
+            `Poslat zahtev za ${lesson_type} čas. ` +
+            `Tip nastave: ${lesson_mode}.`,
+
+          ipAddress:
+            getIpAddress(req)
+        },
+        client
       );
+
+
+      await client.query("COMMIT");
+
+
+      res.json({
+        message:
+          "Zahtev uspešno poslat.",
+
+        request:
+          createdRequest,
+
+        ai_procena:
+          linkedAiAssessment
+      });
+
+
+    } catch (err) {
+      try {
+        await client.query("ROLLBACK");
+      } catch (rollbackError) {
+        console.log(
+          "ROLLBACK ERROR:",
+          rollbackError.message
+        );
+      }
+
+      console.log(
+        "CREATE LESSON REQUEST ERROR:",
+        err
+      );
+
+      res.status(500).json({
+        message:
+          "Došlo je do greške pri kreiranju zahteva.",
+
+        error:
+          err.message
+      });
+
+    } finally {
+      client.release();
     }
-
-    console.log(
-      "CREATE LESSON REQUEST ERROR:",
-      err
-    );
-
-    res.status(500).json({
-      message:
-        "Došlo je do greške pri kreiranju zahteva.",
-
-      error:
-        err.message
-    });
-
-  } finally {
-    client.release();
   }
-});
+);
 
 
 // =====================================================
 // GET MY REQUESTS
-// Client vidi svoje zahteve
+// CLIENT
 // =====================================================
 
 router.get(
@@ -512,7 +476,7 @@ router.get(
 
 // =====================================================
 // GET ALL REQUESTS
-// Admin / Booker
+// ADMIN / BOOKER
 // =====================================================
 
 router.get(
@@ -537,7 +501,7 @@ router.get(
                 'disciplina', ap.disciplina,
                 'iskustvo', ap.iskustvo,
                 'koristi_zicaru', ap.koristi_zicaru,
-                'kontrolise_brzinu', ap.kontrolise_brzinu,
+                'kontrolise_brzzinu', ap.kontrolise_brzinu,
                 'paralelni_zavoji', ap.paralelni_zavoji,
                 'sigurnost_na_stazi', ap.sigurnost_na_stazi,
                 'procenjeni_nivo', ap.procenjeni_nivo,
@@ -577,7 +541,7 @@ router.get(
 
 // =====================================================
 // APPROVE REQUEST
-// Admin / Booker
+// ADMIN / BOOKER
 // =====================================================
 
 router.post(
@@ -709,10 +673,6 @@ router.post(
         request.lesson_mode === "group"
       ) {
 
-        // -------------------------
-        // 2h
-        // -------------------------
-
         if (
           request.group_package === "2h"
         ) {
@@ -769,10 +729,6 @@ router.post(
           );
         }
 
-
-        // -------------------------
-        // 4h bez ručka
-        // -------------------------
 
         if (
           request.group_package ===
@@ -831,10 +787,6 @@ router.post(
           );
         }
 
-
-        // -------------------------
-        // 4h sa ručkom
-        // -------------------------
 
         if (
           request.group_package ===
@@ -1039,7 +991,7 @@ router.post(
 
 
       // =====================================================
-      // MENJANJE STATUSA ZAHTEVA
+      // STATUS ZAHTEVA
       // =====================================================
 
       await pool.query(
@@ -1054,8 +1006,10 @@ router.post(
         ]
       );
 
+
       await logActivity({
-        userId: req.user.id,
+        userId:
+          req.user.id,
 
         action:
           "APPROVE_LESSON_REQUEST",
@@ -1072,6 +1026,7 @@ router.post(
         ipAddress:
           getIpAddress(req)
       });
+
 
       res.json({
         message:
@@ -1098,7 +1053,7 @@ router.post(
 
 // =====================================================
 // REJECT REQUEST
-// Admin / Booker
+// ADMIN / BOOKER
 // =====================================================
 
 router.post(
@@ -1120,6 +1075,7 @@ router.post(
           UPDATE lesson_requests
           SET status = $1
           WHERE id = $2
+            AND status = 'pending'
           RETURNING *
           `,
           [
@@ -1128,8 +1084,20 @@ router.post(
           ]
         );
 
+
+      if (
+        rejectedRequest.rows.length === 0
+      ) {
+        return res.status(404).json({
+          message:
+            "Zahtev nije pronađen ili je već obrađen."
+        });
+      }
+
+
       await logActivity({
-        userId: req.user.id,
+        userId:
+          req.user.id,
 
         action:
           "REJECT_LESSON_REQUEST",
@@ -1146,15 +1114,6 @@ router.post(
         ipAddress:
           getIpAddress(req)
       });
-
-      if (
-        rejectedRequest.rows.length === 0
-      ) {
-        return res.status(404).json({
-          message:
-            "Zahtev nije pronađen."
-        });
-      }
 
 
       res.json({
@@ -1182,10 +1141,13 @@ router.post(
 
 // =====================================================
 // CANCEL REQUEST
+// SAMO VLASNIK ZAHTEVA - CLIENT
 // =====================================================
 
 router.post(
   "/:id/cancel",
+  authMiddleware,
+  roleMiddleware("client"),
   async (req, res) => {
     try {
       const requestId =
@@ -1196,6 +1158,64 @@ router.post(
       } = req.body;
 
 
+      // =====================================================
+      // PROVERA VLASNIŠTVA
+      // =====================================================
+
+      const requestResult =
+        await pool.query(
+          `
+          SELECT *
+          FROM lesson_requests
+          WHERE id = $1
+            AND user_id = $2
+          `,
+          [
+            requestId,
+            req.user.id
+          ]
+        );
+
+
+      if (
+        requestResult.rows.length === 0
+      ) {
+        return res.status(404).json({
+          message:
+            "Zahtev nije pronađen ili ne pripada prijavljenom korisniku."
+        });
+      }
+
+
+      const request =
+        requestResult.rows[0];
+
+
+      // Već obrađen ili već otkazan zahtev ne može ponovo da se otkazuje
+      if (
+        request.status === "cancelled"
+      ) {
+        return res.status(400).json({
+          message:
+            "Zahtev je već otkazan."
+        });
+      }
+
+
+      if (
+        request.status !== "pending"
+      ) {
+        return res.status(400).json({
+          message:
+            "Moguće je otkazati samo zahtev koji još nije obrađen."
+        });
+      }
+
+
+      // =====================================================
+      // OTKAZIVANJE
+      // =====================================================
+
       const cancelledRequest =
         await pool.query(
           `
@@ -1204,12 +1224,14 @@ router.post(
             status = $1,
             cancel_reason = $2
           WHERE id = $3
+            AND user_id = $4
           RETURNING *
           `,
           [
             "cancelled",
             cancel_reason || null,
-            requestId
+            requestId,
+            req.user.id
           ]
         );
 
@@ -1219,14 +1241,37 @@ router.post(
       ) {
         return res.status(404).json({
           message:
-            "Zahtev nije pronađen."
+            "Zahtev nije moguće otkazati."
         });
       }
 
 
+      await logActivity({
+        userId:
+          req.user.id,
+
+        action:
+          "CANCEL_LESSON_REQUEST",
+
+        entityType:
+          "lesson_request",
+
+        entityId:
+          Number(requestId),
+
+        details:
+          cancel_reason
+            ? `Korisnik je otkazao zahtev. Razlog: ${cancel_reason}`
+            : "Korisnik je otkazao zahtev.",
+
+        ipAddress:
+          getIpAddress(req)
+      });
+
+
       res.json({
         message:
-          "Zahtev je otkazan.",
+          "Zahtev je uspešno otkazan.",
 
         request:
           cancelledRequest.rows[0]
@@ -1235,10 +1280,14 @@ router.post(
 
     } catch (err) {
       console.log(
-        err.message
+        "CANCEL REQUEST ERROR:",
+        err
       );
 
       res.status(500).json({
+        message:
+          "Došlo je do greške prilikom otkazivanja zahteva.",
+
         error:
           err.message
       });
